@@ -1,0 +1,12 @@
+{
+  "name": "amplifies-dashboard-api",
+  "version": "1.0.0",
+  "description": "Amplifies Dashboard API Server",
+  "main": "dashboard-server.js",
+  "scripts": {
+    "start": "node dashboard-server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
