@@ -10,9 +10,18 @@ const CustomerSuccessAgent = require('./customer-success-agent.js');
 const CreativeDirectorAgent = require('./creative-director-agent.js');
 const SocialMediaManagerAgent = require('./social-media-manager-agent.js');
 const SecuritySpecialistAgent = require('./security-specialist-agent.js');
+const ProactiveAssistantAgent = require('./proactive-assistant-agent.js');
+const EnhancedMemorySystem = require('./enhanced-memory-system.js');
+const A2ACollaborationProtocol = require('./a2a-collaboration-protocol.js');
 
 class AgentOrchestrator {
   constructor() {
+    // 核心架构组件（学习Claude Code）
+    this.proactiveAssistant = new ProactiveAssistantAgent();
+    this.memorySystem = new EnhancedMemorySystem();
+    this.collaborationProtocol = new A2ACollaborationProtocol();
+    
+    // 业务Agent
     this.agents = {
       sales: new SalesDevelopmentAgent({ email: 'sales@amplifies.ai' }),
       seo: new SEOSpecialistAgent({ targetKeywords: ['ai marketing', 'restaurant marketing'] }),
@@ -22,6 +31,9 @@ class AgentOrchestrator {
       socialMedia: new SocialMediaManagerAgent(),
       security: new SecuritySpecialistAgent()
     };
+    
+    // 注册Agent到协作协议
+    this.registerAllAgents();
     
     this.workflows = {
       daily: [
@@ -33,7 +45,59 @@ class AgentOrchestrator {
   }
 
   /**
-   * 运行销售活动工作流
+   * 注册所有Agent到协作协议
+   */
+  registerAllAgents() {
+    for (const [key, agent] of Object.entries(this.agents)) {
+      this.collaborationProtocol.registerAgent({
+        id: key,
+        name: agent.config?.name || key,
+        capabilities: this.inferCapabilities(key),
+        specialties: this.inferSpecialties(key),
+        instance: agent
+      });
+    }
+    
+    console.log(`✅ 已注册 ${Object.keys(this.agents).length} 个Agent到A2A协议`);
+  }
+  
+  inferCapabilities(key) {
+    const capabilityMap = {
+      sales: ['sales', 'outreach', 'lead-generation'],
+      seo: ['seo', 'content-optimization', 'keyword-research'],
+      data: ['data-analysis', 'reporting', 'prediction'],
+      customerSuccess: ['customer-support', 'onboarding', 'retention'],
+      creative: ['creative', 'design', 'branding'],
+      socialMedia: ['social-media', 'content-scheduling', 'engagement'],
+      security: ['security', 'monitoring', 'compliance']
+    };
+    return capabilityMap[key] || ['general'];
+  }
+  
+  inferSpecialties(key) {
+    const specialtyMap = {
+      sales: 'B2B Sales',
+      seo: 'Search Optimization',
+      data: 'Business Intelligence',
+      customerSuccess: 'Customer Experience',
+      creative: 'Brand Strategy',
+      socialMedia: 'Social Growth',
+      security: 'Cybersecurity'
+    };
+    return specialtyMap[key] || 'General';
+  }
+
+  /**
+   * 启动主动助手（后台常驻）
+   */
+  async startProactiveMode() {
+    console.log('🚀 启动主动AI助手模式...');
+    await this.proactiveAssistant.start();
+    console.log('✅ 主动助手已启动，开始24/7监控');
+  }
+
+  /**
+   * 运行销售活动工作流（使用A2A协议）
    */
   async runSalesCampaign(campaignConfig) {
     console.log('🚀 启动销售活动工作流');
