@@ -689,7 +689,106 @@
         <footer class="footer">
             <p>© 2026 Amplifies AI • 26 AI Agents • 99.99% Automation</p>
             <p style="margin-top: 8px; font-size: 0.8125rem;">Powered by <a href="#">Claude Code Architecture</a></p>
+            <p id="last-updated" style="margin-top: 8px; font-size: 0.75rem; color: var(--text-secondary);">Last updated: --</p>
         </footer>
     </main>
+
+    <script>
+        const API_URL = 'https://amplifies-api.onrender.com';
+        let isConnected = false;
+
+        // Fetch data from API
+        async function fetchData() {
+            const startTime = performance.now();
+            try {
+                const response = await fetch(`${API_URL}/api/dashboard`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                const data = await response.json();
+                const responseTime = Math.round(performance.now() - startTime);
+                
+                isConnected = true;
+                updateConnectionStatus(true, responseTime);
+                return data;
+            } catch (error) {
+                console.log('API failed:', error.message);
+                isConnected = false;
+                updateConnectionStatus(false);
+                return generateMockData();
+            }
+        }
+
+        // Update connection status badge
+        function updateConnectionStatus(connected, responseTime) {
+            const badge = document.querySelector('.connection-badge');
+            const dot = document.querySelector('.pulse-dot');
+            
+            if (connected) {
+                badge.innerHTML = `<span class="pulse-dot"></span> Connected (${responseTime}ms)`;
+                dot.style.background = 'var(--accent-green)';
+            } else {
+                badge.innerHTML = `<span class="pulse-dot" style="background: var(--accent-orange);"></span> Using Local Data`;
+            }
+        }
+
+        // Generate mock data when API is offline
+        function generateMockData() {
+            return {
+                timestamp: new Date().toISOString(),
+                system: { status: 'online', version: 'v2.2-hybrid', uptime: '99.9%' },
+                kpi: {
+                    totalAgents: 26,
+                    completedTasks: 156,
+                    imagesGenerated: 47,
+                    avgResponseTime: 245,
+                    uptime: '99.9%'
+                },
+                agents: [
+                    { id: 'orchestrator', name: 'Orchestrator', displayName: '🎭 Orchestrator', status: 'active', team: 'business', tasksCompleted: 234 },
+                    { id: 'researcher', name: 'Researcher', displayName: '🔍 Researcher', status: 'active', team: 'business', tasksCompleted: 89 },
+                    { id: 'copywriter', name: 'Copywriter', displayName: '✍️ Copywriter', status: 'busy', team: 'content', tasksCompleted: 456 },
+                    { id: 'designer', name: 'Designer', displayName: '🎨 Designer', status: 'active', team: 'business', tasksCompleted: 67 }
+                ],
+                tasks: [
+                    { id: 1, name: '生成小红书内容', assignee: 'Copywriter', status: 'completed', progress: 100 },
+                    { id: 2, name: '市场趋势分析', assignee: 'Researcher', status: 'running', progress: 65 },
+                    { id: 3, name: '邮件发送任务', assignee: 'Orchestrator', status: 'pending', progress: 0 }
+                ]
+            };
+        }
+
+        // Update dashboard with data
+        function updateDashboard(data) {
+            // Update KPI cards
+            if (data.kpi) {
+                const kpiCards = document.querySelectorAll('.kpi-value');
+                if (kpiCards[0]) kpiCards[0].textContent = data.kpi.totalAgents || 26;
+                if (kpiCards[1]) kpiCards[1].textContent = data.kpi.completedTasks || 156;
+                if (kpiCards[2]) kpiCards[2].textContent = data.kpi.imagesGenerated || 47;
+                if (kpiCards[3]) kpiCards[3].textContent = (data.kpi.avgResponseTime || 245) + 'ms';
+                if (kpiCards[4]) kpiCards[4].textContent = data.kpi.uptime || '99.9%';
+            }
+
+            // Update last updated time
+            const lastUpdated = document.getElementById('last-updated');
+            if (lastUpdated) {
+                const time = new Date().toLocaleTimeString();
+                lastUpdated.textContent = `Last updated: ${time} ${isConnected ? '(Live API)' : '(Local Data)'}`;
+            }
+        }
+
+        // Initial load
+        fetchData().then(updateDashboard);
+
+        // Auto-refresh every 3 seconds
+        setInterval(async () => {
+            const data = await fetchData();
+            updateDashboard(data);
+        }, 3000);
+    </script>
 </body>
 </html>
