@@ -89,7 +89,7 @@ const server = http.createServer((req, res) => {
   if (url.pathname === '/api/health') {
     res.writeHead(200);
     res.end(JSON.stringify({ status: 'ok', timestamp: new Date().toISOString() }));
-  } else if (url.pathname === '/api/dashboard') {
+  } else if (url.pathname === '/api/dashboard' || url.pathname === '/api/realtime') {
     res.writeHead(200);
     res.end(JSON.stringify(generateDashboardData()));
   } else if (url.pathname === '/api/image-generation' && req.method === 'POST') {
