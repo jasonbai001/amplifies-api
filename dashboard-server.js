@@ -1,4 +1,6 @@
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
 const PORT = process.env.PORT || 3456;
 
 const setCORS = (res) => {
@@ -127,6 +129,18 @@ const server = http.createServer((req, res) => {
       templates: ['restaurant-food', 'nail-art', 'beauty-service', 'product-showcase'],
       provider: 'openai-dalle3'
     }));
+  } else if (url.pathname === '/' || url.pathname === '/index.html') {
+    // Serve Dashboard v2
+    const indexPath = path.join(__dirname, 'dashboard', 'index.html');
+    try {
+      const content = fs.readFileSync(indexPath, 'utf8');
+      res.setHeader('Content-Type', 'text/html');
+      res.writeHead(200);
+      res.end(content);
+    } catch (error) {
+      res.writeHead(500);
+      res.end(JSON.stringify({ error: 'Failed to load dashboard', message: error.message }));
+    }
   } else {
     res.writeHead(404);
     res.end(JSON.stringify({ error: 'Not found' }));

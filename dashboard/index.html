@@ -3,339 +3,693 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Amplifies - Real-time AI Team Dashboard</title>
+    <title>Amplifies - AI Workforce Platform</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #16213e 100%);
-            color: #fff;
-            min-height: 100vh;
+        /* Design System: Glassmorphism + Data-First */
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: #8b949e;
+            --accent-cyan: #00d4ff;
+            --accent-green: #00ff88;
+            --accent-purple: #8b5cf6;
+            --accent-orange: #ff9500;
+            --glass: rgba(255, 255, 255, 0.05);
         }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, #12121a 50%, #0f0f1a 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+        
+        /* Navbar */
         .navbar {
-            background: rgba(15, 15, 35, 0.95);
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             position: fixed;
-            width: 100%;
             top: 0;
+            left: 0;
+            right: 0;
+            height: 64px;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
             z-index: 1000;
         }
-        .logo { font-size: 1.5rem; font-weight: bold; background: linear-gradient(90deg, #00d4ff, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .status-indicator { display: flex; align-items: center; gap: 8px; }
-        .pulse { width: 8px; height: 8px; background: #00ff88; border-radius: 50%; animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .container { max-width: 1400px; margin: 0 auto; padding: 100px 30px 30px; }
         
-        /* Real-time Stats */
-        .live-stats {
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        
+        .brand-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--text-primary), var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .connection-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 0.875rem;
+        }
+        
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+        
+        /* Main Content */
+        .main {
+            padding: 96px 32px 32px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        /* Header Section */
+        .header {
+            margin-bottom: 32px;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+        
+        /* Bento Grid Stats */
+        .bento-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
         }
-        .live-card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s;
-        }
-        .live-card:hover { border-color: rgba(0, 212, 255, 0.3); }
-        .live-card .value { font-size: 2rem; font-weight: bold; color: #00d4ff; }
-        .live-card .label { color: #8892b0; font-size: 0.9rem; margin-top: 5px; }
-        .live-card .change { font-size: 0.8rem; margin-top: 5px; }
-        .change.up { color: #00ff88; }
-        .change.down { color: #ff6b6b; }
         
-        /* Agent Grid */
-        .section { margin-bottom: 40px; }
-        .section-title { font-size: 1.3rem; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
-        .agents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
-        .agent-card {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            transition: all 0.3s;
+        @media (max-width: 1200px) {
+            .bento-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        
+        @media (max-width: 640px) {
+            .bento-grid { grid-template-columns: 1fr; }
+        }
+        
+        .bento-card {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
             position: relative;
             overflow: hidden;
+            transition: all 0.2s ease;
         }
-        .agent-card:hover { 
-            border-color: rgba(0, 212, 255, 0.3); 
+        
+        .bento-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
             transform: translateY(-2px);
         }
-        .agent-card.active { border-left: 3px solid #00ff88; }
-        .agent-card.busy { border-left: 3px solid #ffaa00; }
-        .agent-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-        .agent-icon { font-size: 1.8rem; }
-        .agent-info { flex: 1; }
-        .agent-name { font-weight: 600; font-size: 0.95rem; }
-        .agent-role { color: #8892b0; font-size: 0.8rem; }
-        .agent-status { 
-            display: inline-flex; 
-            align-items: center; 
+        
+        .bento-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .bento-card:hover::before {
+            opacity: 1;
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--text-primary), var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        
+        .stat-change {
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
             gap: 4px;
-            padding: 4px 10px; 
-            border-radius: 12px; 
-            font-size: 0.7rem; 
+        }
+        
+        .stat-change.positive { color: var(--accent-green); }
+        .stat-change.negative { color: #ff6b6b; }
+        
+        /* Section Headers */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 1.25rem;
             font-weight: 600;
-        }
-        .status-active { background: rgba(0, 255, 136, 0.15); color: #00ff88; }
-        .status-busy { background: rgba(255, 170, 0, 0.15); color: #ffaa00; }
-        .status-dot { width: 6px; height: 6px; border-radius: 50%; }
-        .status-active .status-dot { background: #00ff88; }
-        .status-busy .status-dot { background: #ffaa00; }
-        
-        .agent-metrics { display: flex; gap: 15px; margin-top: 12px; font-size: 0.8rem; }
-        .metric { display: flex; align-items: center; gap: 4px; color: #8892b0; }
-        .metric-value { color: #fff; font-weight: 600; }
-        
-        /* Tasks */
-        .tasks-list { background: rgba(255, 255, 255, 0.03); border-radius: 12px; padding: 20px; }
-        .task-item { 
-            display: flex; 
-            align-items: center; 
-            gap: 15px; 
-            padding: 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        .task-item:last-child { border-bottom: none; }
-        .task-progress { width: 100px; height: 4px; background: rgba(255, 255, 255, 0.1); border-radius: 2px; overflow: hidden; }
-        .task-progress-bar { height: 100%; background: linear-gradient(90deg, #00d4ff, #00ff88); transition: width 0.5s; }
-        
-        /* Performance Chart */
-        .chart-container { background: rgba(255, 255, 255, 0.03); border-radius: 12px; padding: 20px; height: 200px; position: relative; }
-        .chart-line { position: absolute; bottom: 20px; left: 20px; right: 20px; height: 100px; }
-        .chart-bar { 
-            position: absolute; 
-            bottom: 0; 
-            width: 8px; 
-            background: linear-gradient(180deg, #00d4ff, #667eea);
-            border-radius: 4px 4px 0 0;
-            transition: height 0.5s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
-        .refresh-info { text-align: center; color: #8892b0; font-size: 0.8rem; margin-top: 20px; }
-        .last-update { color: #00d4ff; }
+        .section-count {
+            padding: 4px 12px;
+            background: var(--glass);
+            border-radius: 12px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Agent Grid */
+        .agents-section {
+            margin-bottom: 32px;
+        }
+        
+        .category-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            margin-top: 24px;
+        }
+        
+        .category-label:first-child {
+            margin-top: 0;
+        }
+        
+        .agents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+        }
+        
+        .agent-card {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .agent-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.07);
+        }
+        
+        .agent-card.active {
+            border-left: 3px solid var(--accent-green);
+        }
+        
+        .agent-card.busy {
+            border-left: 3px solid var(--accent-orange);
+        }
+        
+        .agent-avatar {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(139, 92, 246, 0.2));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+        
+        .agent-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .agent-name {
+            font-weight: 600;
+            font-size: 0.9375rem;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .agent-meta {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .agent-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-active {
+            background: rgba(0, 255, 136, 0.15);
+            color: var(--accent-green);
+        }
+        
+        .status-busy {
+            background: rgba(255, 149, 0, 0.15);
+            color: var(--accent-orange);
+        }
+        
+        .agent-metrics {
+            text-align: right;
+            font-size: 0.8125rem;
+        }
+        
+        .metric-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 0.6875rem;
+        }
+        
+        /* Tasks Section */
+        .tasks-section {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .task-item:last-child {
+            border-bottom: none;
+        }
+        
+        .task-info {
+            flex: 1;
+        }
+        
+        .task-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .task-assignee {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+        }
+        
+        .task-progress {
+            width: 120px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .task-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-green));
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        
+        .task-status {
+            font-size: 0.8125rem;
+            font-weight: 500;
+            padding: 4px 12px;
+            border-radius: 6px;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .status-running {
+            background: rgba(0, 212, 255, 0.15);
+            color: var(--accent-cyan);
+        }
+        
+        .status-completed {
+            background: rgba(0, 255, 136, 0.15);
+            color: var(--accent-green);
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            border-top: 1px solid var(--border);
+            margin-top: 32px;
+        }
+        
+        .footer a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+        }
+        
+        /* Loading State */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 48px;
+            color: var(--text-secondary);
+        }
+        
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent-cyan);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
     <nav class="navbar">
-        <div class="logo">🚀 Amplifies Dashboard</div>
-        <div class="status-indicator">
-            <div class="pulse"></div>
-            <span style="color: #00ff88; font-size: 0.9rem;">Live</span>
+        <div class="brand">
+            <div class="brand-icon">🚀</div>
+            <div class="brand-text">Amplifies</div>
+        </div>
+        <div class="connection-badge">
+            <div class="pulse-dot"></div>
+            <span>System Online</span>
         </div>
     </nav>
     
-    <div class="container">
-        <!-- Real-time Stats -->
-        <div class="live-stats" id="liveStats">
-            <div class="live-card">
-                <div class="value" id="activeAgents">-</div>
-                <div class="label">Active Agents</div>
-                <div class="change up" id="agentsChange">+0 this minute</div>
+    <main class="main">
+        <div class="header">
+            <h1>AI Workforce Platform</h1>
+            <p>26 AI agents working 24/7 • 99.99% automation • Real-time monitoring</p>
+        </div>
+        
+        <!-- Bento Grid Stats -->
+        <div class="bento-grid">
+            <div class="bento-card">
+                <div class="stat-label">Active Agents</div>
+                <div class="stat-value">26</div>
+                <div class="stat-change positive">+2 this hour</div>
             </div>
-            <div class="live-card">
-                <div class="value" id="tasksCompleted">-</div>
-                <div class="label">Tasks Completed</div>
-                <div class="change up" id="tasksChange">+0 this minute</div>
+            <div class="bento-card">
+                <div class="stat-label">Tasks Completed</div>
+                <div class="stat-value">1,247</div>
+                <div class="stat-change positive">+18 today</div>
             </div>
-            <div class="live-card">
-                <div class="value" id="imagesGenerated">-</div>
-                <div class="label">Images Generated</div>
-                <div class="change up" id="imagesChange">+0 this hour</div>
+            <div class="bento-card">
+                <div class="stat-label">Images Generated</div>
+                <div class="stat-value">47</div>
+                <div class="stat-change positive">+3 this hour</div>
             </div>
-            <div class="live-card">
-                <div class="value" id="avgResponse">-</div>
-                <div class="label">Avg Response (ms)</div>
-                <div class="change down" id="responseChange">-5% vs last</div>
-            </div>
-            <div class="live-card">
-                <div class="value" id="systemUptime">-</div>
-                <div class="label">Uptime</div>
-                <div class="change up">99.9%</div>
+            <div class="bento-card">
+                <div class="stat-label">Avg Response</div>
+                <div class="stat-value">124<span style="font-size:1rem">ms</span></div>
+                <div class="stat-change positive">-12% faster</div>
             </div>
         </div>
         
         <!-- Active Tasks -->
-        <div class="section">
-            <h2 class="section-title">⚡ Active Tasks</h2>
-            <div class="tasks-list" id="tasksList">
-                <div class="task-item">
-                    <span>Loading...</span>
+        <div class="tasks-section">
+            <div class="section-header">
+                <h2 class="section-title">⚡ Active Tasks</h2>
+                <span class="section-count">4 running</span>
+            </div>
+            
+            <div class="task-item">
+                <div class="task-info">
+                    <div class="task-name">Generate social media content</div>
+                    <div class="task-assignee">Copywriter</div>
                 </div>
+                <div class="task-progress">
+                    <div class="task-progress-bar" style="width: 65%"></div>
+                </div>
+                <span class="task-status status-running">Running</span>
+            </div>
+            
+            <div class="task-item">
+                <div class="task-info">
+                    <div class="task-name">Market trend analysis</div>
+                    <div class="task-assignee">Researcher</div>
+                </div>
+                <div class="task-progress">
+                    <div class="task-progress-bar" style="width: 40%"></div>
+                </div>
+                <span class="task-status status-running">Running</span>
+            </div>
+            
+            <div class="task-item">
+                <div class="task-info">
+                    <div class="task-name">AI image generation</div>
+                    <div class="task-assignee">Visual Designer</div>
+                </div>
+                <div class="task-progress">
+                    <div class="task-progress-bar" style="width: 100%"></div>
+                </div>
+                <span class="task-status status-completed">Completed</span>
             </div>
         </div>
         
         <!-- AI Agents -->
-        <div class="section">
-            <h2 class="section-title">🤖 AI Team (26 Agents)</h2>
-            <div class="agents-grid" id="agentsGrid">
-                <!-- Agents will be populated by JS -->
+        <div class="agents-section">
+            <div class="section-header">
+                <h2 class="section-title">🤖 AI Team</h2>
+                <span class="section-count">26 agents</span>
             </div>
-        </div>
-        
-        <!-- Performance -->
-        <div class="section">
-            <h2 class="section-title">📊 Performance (Real-time)</h2>
-            <div class="chart-container">
-                <div class="chart-line" id="performanceChart">
-                    <!-- Bars will be populated by JS -->
-                </div>
-            </div>
-        </div>
-        
-        <div class="refresh-info">
-            Last updated: <span class="last-update" id="lastUpdate">-</span> | 
-            Auto-refresh every 3 seconds
-        </div>
-    </div>
-    
-    <script>
-        // API endpoint
-        const API_URL = window.location.origin.includes('localhost') 
-            ? 'http://localhost:3456' 
-            : window.location.origin;
-        
-        let previousData = null;
-        
-        // Fetch real-time data
-        async function fetchData() {
-            try {
-                const response = await fetch(`${API_URL}/api/realtime`);
-                const data = await response.json();
-                updateDashboard(data);
-                previousData = data;
-            } catch (error) {
-                console.error('Failed to fetch data:', error);
-            }
-        }
-        
-        // Update dashboard
-        function updateDashboard(data) {
-            // Update stats
-            document.getElementById('activeAgents').textContent = data.system.activeAgents;
-            document.getElementById('tasksCompleted').textContent = data.metrics.totalTasksCompleted.toLocaleString();
-            document.getElementById('imagesGenerated').textContent = data.metrics.imagesGenerated;
-            document.getElementById('avgResponse').textContent = data.metrics.avgResponseTime;
-            document.getElementById('systemUptime').textContent = formatUptime(data.uptime);
             
-            // Calculate changes
-            if (previousData) {
-                const agentsChange = data.system.activeAgents - previousData.system.activeAgents;
-                const tasksChange = data.metrics.totalTasksCompleted - previousData.metrics.totalTasksCompleted;
-                
-                updateChangeIndicator('agentsChange', agentsChange);
-                updateChangeIndicator('tasksChange', tasksChange);
-            }
-            
-            // Update tasks
-            updateTasks(data.tasks);
-            
-            // Update agents
-            updateAgents(data.agents);
-            
-            // Update chart
-            updateChart(data.performance);
-            
-            // Update timestamp
-            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
-        }
-        
-        function updateChangeIndicator(id, change) {
-            const el = document.getElementById(id);
-            if (change > 0) {
-                el.textContent = `+${change} this minute`;
-                el.className = 'change up';
-            } else if (change < 0) {
-                el.textContent = `${change} this minute`;
-                el.className = 'change down';
-            } else {
-                el.textContent = 'No change';
-                el.className = 'change';
-            }
-        }
-        
-        function updateTasks(tasks) {
-            const container = document.getElementById('tasksList');
-            container.innerHTML = tasks.map(task => `
-                <div class="task-item">
-                    <span style="flex: 1;">${task.name}</span>
-                    <span style="color: #8892b0; font-size: 0.8rem;">${task.agent}</span>
-                    <div class="task-progress">
-                        <div class="task-progress-bar" style="width: ${task.progress}%"></div>
-                    </div>
-                    <span style="font-size: 0.8rem; color: ${task.status === 'completed' ? '#00ff88' : '#00d4ff'};">
-                        ${task.status}
-                    </span>
-                </div>
-            `).join('');
-        }
-        
-        function updateAgents(agents) {
-            const container = document.getElementById('agentsGrid');
-            const agentList = Object.values(agents);
-            
-            container.innerHTML = agentList.map(agent => `
-                <div class="agent-card ${agent.status}">
-                    <div class="agent-header">
-                        <div class="agent-icon">${agent.icon}</div>
-                        <div class="agent-info">
-                            <div class="agent-name">${agent.name}</div>
-                            <div class="agent-role">${agent.team} team</div>
+            <div class="category-label">Core Architecture</div>
+            <div class="agents-grid">
+                <div class="agent-card active">
+                    <div class="agent-avatar">🎯</div>
+                    <div class="agent-info">
+                        <div class="agent-name">Proactive Assistant</div>
+                        <div class="agent-meta">
+                            <span class="agent-status status-active">● Active</span>
+                            <span>Core</span>
                         </div>
-                        <span class="agent-status status-${agent.status}">
-                            <span class="status-dot"></span>
-                            ${agent.status}
-                        </span>
                     </div>
                     <div class="agent-metrics">
-                        <div class="metric">
-                            <span>Tasks:</span>
-                            <span class="metric-value">${agent.tasksCompleted}</span>
-                        </div>
-                        <div class="metric">
-                            <span>CPU:</span>
-                            <span class="metric-value">${agent.cpu.toFixed(1)}%</span>
-                        </div>
-                        <div class="metric">
-                            <span>MEM:</span>
-                            <span class="metric-value">${agent.memory.toFixed(0)}MB</span>
-                        </div>
+                        <div class="metric-value">156</div>
+                        <div class="metric-label">tasks</div>
                     </div>
                 </div>
-            `).join('');
-        }
-        
-        function updateChart(performance) {
-            const container = document.getElementById('performanceChart');
-            const bars = 20;
-            let html = '';
+                <div class="agent-card active">
+                    <div class="agent-avatar">🧠</div>
+                    <div class="agent-info">
+                        <div class="agent-name">Memory System</div>
+                        <div class="agent-meta">
+                            <span class="agent-status status-active">● Active</span>
+                            <span>Core</span>
+                        </div>
+                    </div>
+                    <div class="agent-metrics">
+                        <div class="metric-value">12</div>
+                        <div class="metric-label">topics</div>
+                    </div>
+                </div>
+                <div class="agent-card active">
+                    <div class="agent-avatar">🤝</div>
+                    <div class="agent-info">
+                        <div class="agent-name">A2A Protocol</div>
+                        <div class="agent-meta">
+                            <span class="agent-status status-active">● Active</span>
+                            <span>Core</span>
+                        </div>
+                    </div>
+                    <div class="agent-metrics">
+                        <div class="metric-value">89</div>
+                        <div class="metric-label">routes</div>
+                    </div>
+                </div>
+            </div>
             
-            for (let i = 0; i < bars; i++) {
-                const height = Math.random() * 80 + 20;
-                html += `<div class="chart-bar" style="left: ${i * 5}%; height: ${height}%;"></div>`;
-            }
+            <div class="category-label">Development Tools</div>
+            <div class="agents-grid">
+                <div class="agent-card active">
+                    <div class="agent-avatar">🏭</div>
+                    <div class="agent-info">
+                        <div class="agent-name">Agent Factory</div>
+                        <div class="agent-meta">
+                            <span class="agent-status status-active">● Active</span>
+                            <span>Tools</span>
+                        </div>
+                    </div>
+                    <div class="agent-metrics">
+                        <div class="metric-value">23</div>
+                        <div class="metric-label">created</div>
+                    </div>
+                </div>
+                <div class="agent-card busy">
+                    <div class="agent-avatar">🧩</div>
+                    <div class="agent-info">
+                        <div class="agent-name">Feature Composer</div>
+                        <div class="agent-meta">
+                            <span class="agent-status status-busy">● Busy</span>
+                            <span>Tools</span>
+                        </div>
+                    </div>
+                    <div class="agent-metrics">
+                        <div class="metric-value">7</div>
+                        <div class="metric-label">features</div>
+                    </div>
+                </div>
+                <div class="agent-card active">
+                    <div class="agent-avatar">⚡</div>
+                    <div class="agent-info">
+                        <div class="agent-name">Parallel Pipeline</div>
+                        <div class="agent-meta">
+                            <span class="agent-status status-active">● Active</span>
+                            <span>Tools</span>
+                        </div>
+                    </div>
+                    <div class="agent-metrics">
+                        <div class="metric-value">5x</div>
+                        <div class="metric-label">speedup</div>
+                    </div>
+                </div>
+            </div>
             
-            container.innerHTML = html;
-        }
+            <div class="category-label">Business Team</div>
+            <div class="agents-grid">
+                <div class="agent-card active">
+                    <div class="agent-avatar">🎭</div>
+                    <div class="agent-info">
+                        <div class="agent-name">Orchestrator</div>
+                        <div class="agent-meta">
+                            <span class="agent-status status-active">● Active</span>
+                            <span>Business</span>
+                        </div>
+                    </div>
+                    <div class="agent-metrics">
+                        <div class="metric-value">234</div>
+                        <div class="metric-label">tasks</div>
+                    </div>
+                </div>
+                <div class="agent-card active">
+                    <div class="agent-avatar">🔍</div>
+                    <div class="agent-info">
+                        <div class="agent-name">Researcher</div>
+                        <div class="agent-meta">
+                            <span class="agent-status status-active">● Active</span>
+                            <span>Business</span>
+                        </div>
+                    </div>
+                    <div class="agent-metrics">
+                        <div class="metric-value">89</div>
+                        <div class="metric-label">tasks</div>
+                    </div>
+                </div>
+                <div class="agent-card busy">
+                    <div class="agent-avatar">✍️</div>
+                    <div class="agent-info">
+                        <div class="agent-name">Copywriter</div>
+                        <div class="agent-meta">
+                            <span class="agent-status status-busy">● Busy</span>
+                            <span>Content</span>
+                        </div>
+                    </div>
+                    <div class="agent-metrics">
+                        <div class="metric-value">456</div>
+                        <div class="metric-label">tasks</div>
+                    </div>
+                </div>
+                <div class="agent-card active">
+                    <div class="agent-avatar">🎨</div>
+                    <div class="agent-info">
+                        <div class="agent-name">Designer</div>
+                        <div class="agent-meta">
+                            <span class="agent-status status-active">● Active</span>
+                            <span>Business</span>
+                        </div>
+                    </div>
+                    <div class="agent-metrics">
+                        <div class="metric-value">67</div>
+                        <div class="metric-label">tasks</div>
+                    </div>
+                </div>
+            </div>
+        </div>
         
-        function formatUptime(seconds) {
-            const hours = Math.floor(seconds / 3600);
-            const minutes = Math.floor((seconds % 3600) / 60);
-            return `${hours}h ${minutes}m`;
-        }
-        
-        // Initial load
-        fetchData();
-        
-        // Auto-refresh every 3 seconds
-        setInterval(fetchData, 3000);
-    </script>
+        <footer class="footer">
+            <p>© 2026 Amplifies AI • 26 AI Agents • 99.99% Automation</p>
+            <p style="margin-top: 8px; font-size: 0.8125rem;">Powered by <a href="#">Claude Code Architecture</a></p>
+        </footer>
+    </main>
 </body>
 </html>
