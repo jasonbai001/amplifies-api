@@ -6,13 +6,21 @@
 const SalesDevelopmentAgent = require('./sales-development-agent.js');
 const SEOSpecialistAgent = require('./seo-specialist-agent.js');
 const DataAnalystAgent = require('./data-analyst-agent.js');
+const CustomerSuccessAgent = require('./customer-success-agent.js');
+const CreativeDirectorAgent = require('./creative-director-agent.js');
+const SocialMediaManagerAgent = require('./social-media-manager-agent.js');
+const SecuritySpecialistAgent = require('./security-specialist-agent.js');
 
 class AgentOrchestrator {
   constructor() {
     this.agents = {
       sales: new SalesDevelopmentAgent({ email: 'sales@amplifies.ai' }),
       seo: new SEOSpecialistAgent({ targetKeywords: ['ai marketing', 'restaurant marketing'] }),
-      data: new DataAnalystAgent()
+      data: new DataAnalystAgent(),
+      customerSuccess: new CustomerSuccessAgent(),
+      creative: new CreativeDirectorAgent(),
+      socialMedia: new SocialMediaManagerAgent(),
+      security: new SecuritySpecialistAgent()
     };
     
     this.workflows = {
@@ -136,6 +144,109 @@ class AgentOrchestrator {
   }
 
   /**
+   * 运行客户成功工作流
+   */
+  async runCustomerSuccessWorkflow() {
+    console.log('💬 运行客户成功工作流');
+    
+    // 1. 运行健康检查
+    const healthChecks = await Promise.all([
+      this.agents.customerSuccess.runHealthCheck({ name: 'Customer A' }),
+      this.agents.customerSuccess.runHealthCheck({ name: 'Customer B' }),
+      this.agents.customerSuccess.runHealthCheck({ name: 'Customer C' })
+    ]);
+    
+    // 2. 识别风险客户
+    const atRisk = healthChecks.filter(h => h.status === 'at_risk');
+    
+    if (atRisk.length > 0) {
+      console.log(`  🚨 发现 ${atRisk.length} 个风险客户`);
+      await this.agents.customerSuccess.runRetentionCampaign(atRisk);
+    }
+    
+    // 3. 运行NPS调查
+    const nps = await this.agents.customerSuccess.runNPSSurvey();
+    
+    return {
+      healthChecks: healthChecks,
+      atRiskCustomers: atRisk.length,
+      npsScore: nps.npsScore
+    };
+  }
+
+  /**
+   * 运行创意工作流
+   */
+  async runCreativeWorkflow() {
+    console.log('🎨 运行创意工作流');
+    
+    // 1. 创建营销活动概念
+    const campaign = await this.agents.creative.createCampaignConcept({
+      campaignName: 'Q2 Growth Campaign',
+      targetAudience: 'small business owners',
+      budget: 5000
+    });
+    
+    // 2. 生成设计系统
+    const designSystem = await this.agents.creative.createDesignSystem();
+    
+    // 3. 创建内容策略
+    const contentStrategy = await this.agents.creative.createContentStrategy({
+      goals: ['brand awareness', 'lead generation']
+    });
+    
+    return {
+      campaign: campaign,
+      designSystem: designSystem,
+      contentStrategy: contentStrategy
+    };
+  }
+
+  /**
+   * 运行社媒工作流
+   */
+  async runSocialMediaWorkflow() {
+    console.log('📱 运行社媒工作流');
+    
+    // 1. 执行内容日历
+    const content = await this.agents.socialMedia.executeContentCalendar();
+    
+    // 2. 监控趋势
+    const trends = await this.agents.socialMedia.monitorTrends();
+    
+    // 3. 自动互动
+    const engagement = await this.agents.socialMedia.autoEngage('instagram');
+    
+    return {
+      content: content,
+      trends: trends,
+      engagement: engagement
+    };
+  }
+
+  /**
+   * 运行安全工作流
+   */
+  async runSecurityWorkflow() {
+    console.log('🔒 运行安全工作流');
+    
+    // 1. 安全监控
+    const monitoring = await this.agents.security.runSecurityMonitoring();
+    
+    // 2. 漏洞扫描
+    const vulnerabilities = await this.agents.security.runVulnerabilityScan();
+    
+    // 3. 自动补丁
+    const patches = await this.agents.security.autoApplyPatches();
+    
+    return {
+      monitoring: monitoring,
+      vulnerabilities: vulnerabilities,
+      patches: patches
+    };
+  }
+
+  /**
    * 获取所有Agent状态
    */
   getAllAgentStatus() {
@@ -154,6 +265,26 @@ class AgentOrchestrator {
         name: 'Data Analyst',
         status: 'active',
         metrics: this.agents.data.getMetrics()
+      },
+      customerSuccess: {
+        name: 'Customer Success Manager',
+        status: 'active',
+        metrics: this.agents.customerSuccess.getMetrics()
+      },
+      creative: {
+        name: 'Creative Director',
+        status: 'active',
+        metrics: this.agents.creative.getMetrics()
+      },
+      socialMedia: {
+        name: 'Social Media Manager',
+        status: 'active',
+        metrics: this.agents.socialMedia.getMetrics()
+      },
+      security: {
+        name: 'Security Specialist',
+        status: 'active',
+        metrics: this.agents.security.getMetrics()
       }
     };
   }
