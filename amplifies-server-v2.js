@@ -94,41 +94,52 @@ async function executeAgentTask(agentId, task) {
   const agent = orchestrator.agents[agentId];
   if (!agent) throw new Error(`Unknown agent: ${agentId}`);
   
-  log('info', `Executing ${agentId}: ${task.name}`);
+  log('info', `Executing ${agentId}: ${task.name} [${task.type}]`);
   
-  // Route to correct agent method based on task type
-  switch (task.type) {
-    case 'market-research':
-      return agent.analyze ? await agent.analyze(task.data || task) 
-        : { insight: 'Market analysis complete', theme: task.brand || 'general' };
+  // Try agent method first, fall back to Kimi AI
+  try {
+    let result = null;
     
-    case 'content-writing':
-      return agent.generateContent ? await agent.generateContent(task) 
-        : { content: `Content for ${task.brand || 'client'}`, platform: task.platform };
+    switch (task.type) {
+      case 'market-research':
+        result = agent.analyze ? await agent.analyze(task.data || task) : null;
+        break;
+      case 'content-writing':
+        result = agent.generateContent ? await agent.generateContent(task) : null;
+        break;
+      case 'social-media':
+        result = agent.generatePlatformContent 
+          ? await agent.generatePlatformContent(task.name, task.platform || 'instagram') 
+          : null;
+        break;
+      case 'brand-design':
+        result = agent.generateBrandIdentity ? await agent.generateBrandIdentity(task) : null;
+        break;
+      case 'image-generation':
+        result = await handleImageGeneration(task);
+        break;
+      case 'seo':
+        result = agent.analyzeKeywords ? await agent.analyzeKeywords([task.name]) : null;
+        break;
+      case 'data-analysis':
+        result = agent.generateReport ? await agent.generateReport(task.data || { brand: task.brand }) : null;
+        break;
+      default:
+        break;
+    }
     
-    case 'social-media':
-      return agent.generatePlatformContent ? await agent.generatePlatformContent(task.content, task.platform) 
-        : { post: `${task.platform}: ${task.content}`, hashtags: [] };
-    
-    case 'brand-design':
-      return agent.generateBrandIdentity ? await agent.generateBrandIdentity(task) 
-        : { palette: ['#000', '#fff'], fonts: ['Inter'], tagline: task.brand };
-    
-    case 'image-generation':
-      return handleImageGeneration(task);
-    
-    case 'seo':
-      return agent.analyzeKeywords ? await agent.analyzeKeywords(task.keywords || []) 
-        : { keywords: task.keywords, score: 85 };
-    
-    case 'data-analysis':
-      return agent.generateReport ? await agent.generateReport(task.data || {}) 
-        : { report: 'Analysis complete', metrics: {} };
-    
-    default:
-      // Generic: call AI reasoning via Kimi
-      return callKimi(task);
+    // If agent method returned something useful, use it
+    if (result && typeof result === 'object' && Object.keys(result).length > 0) {
+      log('success', `${agentId} returned: ${JSON.stringify(result).slice(0, 80)}`);
+      return result;
+    }
+  } catch (e) {
+    log('warn', `Agent method error (falling back to Kimi): ${e.message}`);
   }
+  
+  // Fallback: use Kimi AI (or template if no key)
+  log('info', `Falling back to Kimi AI for ${task.type}`);
+  return callKimi(task);
 }
 
 // ========== AI Backend (Kimi K2.5) ==========
